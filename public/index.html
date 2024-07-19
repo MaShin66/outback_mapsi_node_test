@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Coupon Event</title>
+    <link rel="stylesheet" href="stylesheets/style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Welcome to the Coupon Event</h1>
+      <img
+        src="https://placehold.co/400?text=Hello+World&font=roboto"
+        alt="Event Image"
+      />
+      <button id="start-button">Start</button>
+    </div>
+    <script src="javascripts/javascript.js"></script>
+    <script>
+      document.getElementById('start-button')?.addEventListener('click', async () => {
+          setAccessIssueAllowed();
+
+          await logEvent('start_click');
+          
+          window.location.href = '/issue';
+      });
+  </script>
+  </body>
+</html>

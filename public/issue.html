@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coupon Issue</title>
+    <link rel="stylesheet" href="stylesheets/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Your Coupon</h1>
+        <div id="coupon-details">
+            <!-- 쿠폰 정보가 여기 표시됩니다 -->
+        </div>
+        <button id="use-coupon-button">쿠폰 저장하기</button>
+        <button id="rejoin-button">다시 참여하기</button>
+    </div>
+    <script src="javascripts/javascript.js"></script>
+    <script>
+        if (!canAccessIssue()) {
+            alert('쿠폰 발급 페이지에 접근할 수 없습니다.');
+            window.location.href = '/';
+        } else {
+            window.onload = fetchCoupon;
+        }
+
+        async function fetchCoupon() {
+            let couponCode = getCouponCode();
+            if (!couponCode) {
+                const response = await fetch('/coupons/issue');
+                const coupon = await response.json();
+                if (coupon.error) {
+                    alert(coupon.error);
+                    return;
+                }
+                couponCode = coupon.code;
+                setCouponCode(couponCode);
+            }
+            
+            const couponResponse = await fetch(`/coupons/${couponCode}`);
+
+            const coupon = await couponResponse.json();
+            // const response = await fetch('/coupons/issue');
+            // const coupon = await response.json();
+            // if (coupon.error) {
+            //     alert(coupon.error);
+            //     return;
+            // }
+            document.getElementById('coupon-details').innerHTML = `
+                <p>Code: ${coupon.code}</p>
+                <p>Type: ${coupon.couponType}</p>
+                <p>Created At: ${new Date(coupon.createdAt).toLocaleString()}</p>
+            `;
+            document.getElementById('use-coupon-button').dataset.code = coupon.code;
+        }
+
+        document.getElementById('use-coupon-button')?.addEventListener('click', async () => {
+            const code = document.getElementById('use-coupon-button').dataset.code;
+
+            const response = await fetch('/coupons/use', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ code })
+            });
+            const data = await response.json();
+
+            alert(data.message || data.error);
+
+            if (data.coupon) {
+                document.getElementById('coupon-details').innerHTML += `<p>Used At: ${new Date(data.coupon.usedAt).toLocaleString()}</p>`;
+                await logEvent('save_click');
+            }
+        });
+
+        document.getElementById('rejoin-button')?.addEventListener('click', async () => {
+            clearCouponCode();
+            setAccessIssueAllowed();
+
+            await logEvent('rejoin_click');
+
+            window.location.href = '/';
+        });
+
+        window.onload = fetchCoupon;
+    </script>
+</body>
+</html>
